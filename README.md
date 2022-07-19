@@ -10,6 +10,6 @@
 [
   "KKTC BANKACILIK YASASI_раб",
   "hesap-basvuru-formu-tr_раб",
-	"Help Center - Translation (Beluga)"
+  "Help Center - Translation (Beluga)"
 ]
 ```
