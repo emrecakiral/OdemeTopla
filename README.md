@@ -1,4 +1,4 @@
-# OdemeTopla
+# SmartCat ve Beluga Alacak Hesabı
 
   Çevirmenlik yapanlar için SmartCat ve Beluga sitelerindeki bekleyen ödemeleri toplayan program.
   Bu projede Selenium kütüphanesi kullanılmıştır. Kur verileri XML ile güncel çekilmektedir.
