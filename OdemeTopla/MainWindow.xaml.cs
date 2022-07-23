@@ -175,7 +175,7 @@ namespace OdemeTopla
 
             foreach (var item in rgList)
             {
-                if (item.Text == region || regionEng)
+                if (item.Text == region || item.Text == regionEng)
                 {
                     item.Click();
                     Thread.Sleep(4000);
