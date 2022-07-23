@@ -95,11 +95,11 @@ namespace OdemeTopla
 
             double totalPrice = 0;
             if (chBoxAvrupa.IsChecked == true)
-                SmartCatTopla("AVRUPA", "");
+                SmartCatTopla("AVRUPA", "EUROPE", "");
             if (chBoxAbd.IsChecked == true)
-                SmartCatTopla("ABD", "us.");
+                SmartCatTopla("ABD", "USA", "us.");
             if (chBoxAsya.IsChecked == true)
-                SmartCatTopla("ASYA", "ea.");
+                SmartCatTopla("ASYA", "ASIA", "ea.");
 
 
             double euro = 0;
@@ -164,7 +164,7 @@ namespace OdemeTopla
         }
 
         #region Methods
-        void SmartCatTopla(string region, string regionURL)
+        void SmartCatTopla(string region, string regionEng, string regionURL)
         {
             IWebElement profile = driver.FindElement(By.XPath("/html/body/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div/div/div[1]/button"));
             profile.Click();
@@ -175,7 +175,7 @@ namespace OdemeTopla
 
             foreach (var item in rgList)
             {
-                if (item.Text == region)
+                if (item.Text == region || regionEng)
                 {
                     item.Click();
                     Thread.Sleep(4000);
@@ -210,7 +210,7 @@ namespace OdemeTopla
             {
                 IWebElement status = item.FindElement(By.CssSelector(".g-text_weight_semibold"));
 
-                if (status.Text == "Ödeme bekleniyor" || status.Text == "Devam ediyor"  || status.Text == "Ödeme işleniyor" || status.Text == "In progress" || status.Text == "Processing payment" || status.Text == "Awaiting payment")
+                if (status.Text == "Ödeme bekleniyor" || status.Text == "Devam ediyor" || status.Text == "Ödeme işleniyor" || status.Text == "In progress" || status.Text == "Processing payment" || status.Text == "Awaiting payment")
                 {
                     string jobID = item.FindElement(By.CssSelector(".freelancer-payments__block-document-name")).Text.Trim();
 
