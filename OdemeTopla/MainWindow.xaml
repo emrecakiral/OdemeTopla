@@ -28,7 +28,7 @@
         <Label x:Name="lblEuro" Content="0 €&#xA;" HorizontalAlignment="Left" Margin="2,253,0,0" VerticalAlignment="Top" Width="124" FontSize="19" Height="42" Foreground="#FF36AB0C" FontWeight="Bold" Grid.Column="1"/>
         <Label Content="Beluga :&#xA;" HorizontalAlignment="Left" Margin="246,253,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.141,-0.162" FontSize="19" Width="79" Height="42"/>
         <Label x:Name="lblDolar" Content="0 $&#xA;" HorizontalAlignment="Left" Margin="3,0,0,0" VerticalAlignment="Center" Width="124" FontSize="19" Height="42" Foreground="#FF36AB0C" FontWeight="Bold" Grid.Column="1"/>
-        <Label Content="SmarCat :&#xA;" HorizontalAlignment="Left" Margin="238,0,0,0" VerticalAlignment="Center" RenderTransformOrigin="0.141,-0.162" FontSize="19" Width="89" Height="42"/>
+        <Label Content="SmartCat :&#xA;" HorizontalAlignment="Left" Margin="228,0,0,0" VerticalAlignment="Center" RenderTransformOrigin="0.141,-0.162" FontSize="19" Width="96" Height="42"/>
         <Label Content="Beluga Şifre:" HorizontalAlignment="Left" Margin="12,126,0,0" VerticalAlignment="Top"/>
         <PasswordBox x:Name="txtPasswordBeluga" HorizontalAlignment="Left" Margin="116,130,0,0" VerticalAlignment="Top" Width="252" Grid.ColumnSpan="2" Height="25"/>
         <Label x:Name="lblUsdKur" Grid.Column="1" Content="USD :" HorizontalAlignment="Left" Margin="165,248,0,0" VerticalAlignment="Top" Width="126" Height="40"/>

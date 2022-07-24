@@ -35,6 +35,16 @@ namespace OdemeTopla
         {
             InitializeComponent();
             excludeds = new List<string>();
+            #region driverSettings
+            new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
+            ChromeDriverService driverService = ChromeDriverService.CreateDefaultService();
+            driverService.HideCommandPromptWindow = true;
+            var options = new ChromeOptions();
+            options.AddArgument("--window-position=-32000,-32000");
+            options.AddArguments("--lang=tr");
+            driver = new ChromeDriver(driverService, options);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
+            #endregion
         }
 
         private void btnHesapla_Click(object sender, RoutedEventArgs e)
@@ -69,18 +79,6 @@ namespace OdemeTopla
             {
                 MessageBox.Show("excludedList.json dosyası bulunamadı veya bozuk.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-
-            #region driverSettings
-            new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
-            ChromeDriverService driverService = ChromeDriverService.CreateDefaultService();
-            driverService.HideCommandPromptWindow = true;
-            var options = new ChromeOptions();
-            options.AddArgument("--window-position=-32000,-32000");
-            driver = new ChromeDriver(driverService, options);
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
-            #endregion
-
 
             driver.Navigate().GoToUrl($"https://smartcat.com/billing/executive-payment-statuses");
             IWebElement userName = driver.FindElement(By.CssSelector(".md-input__textfield"));
@@ -130,7 +128,7 @@ namespace OdemeTopla
                         {
                             IWebElement tutar = item.FindElement(By.XPath("td[3]"));
                             string tutarText = tutar.Text.Substring(0, tutar.Text.Length - 4);
-                            euro += Convert.ToDouble(tutarText.Replace('.', ','));
+                            euro += Convert.ToDouble(tutarText);
                             lblEuro.Content = Math.Round(euro, 2) + " €";
                         }
                         nextBtnStatus = nextBtn.GetAttribute("ng-show");
@@ -219,7 +217,7 @@ namespace OdemeTopla
                             continue;
 
                     IWebElement tutar = item.FindElement(By.XPath("div[5]/div/span/span"));
-                    dolar += Convert.ToDouble(tutar.Text.Replace('.', ','));
+                    dolar += Convert.ToDouble(tutar.Text);
                 }
             }
         }
@@ -229,7 +227,7 @@ namespace OdemeTopla
             string kurUrl = "https://www.tcmb.gov.tr/kurlar/today.xml";
             var xmldoc = new XmlDocument();
             xmldoc.Load(kurUrl);
-            double kur = Convert.ToDouble(xmldoc.SelectSingleNode($"Tarih_Date/Currency [@Kod='{doviz}']/ForexBuying").InnerXml.Replace('.', ','));
+            double kur = Convert.ToDouble(xmldoc.SelectSingleNode($"Tarih_Date/Currency [@Kod='{doviz}']/ForexBuying").InnerXml);
 
             return kur;
         }
