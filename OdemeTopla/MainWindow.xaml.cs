@@ -268,7 +268,7 @@ namespace OdemeTopla
             driverService = ChromeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
             options = new ChromeOptions();
-            //options.AddArgument("--window-position=-32000,-32000");
+            options.AddArgument("--window-position=-32000,-32000");
             options.AddArguments("--lang=tr");
             driver = new ChromeDriver(driverService, options);
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
