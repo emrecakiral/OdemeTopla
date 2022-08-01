@@ -2,8 +2,9 @@
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -21,6 +22,7 @@ using System.Xml;
 using WebDriverManager;
 using WebDriverManager.DriverConfigs.Impl;
 using WebDriverManager.Helpers;
+using Microsoft.Win32;
 
 namespace OdemeTopla
 {
@@ -29,26 +31,27 @@ namespace OdemeTopla
         WebDriver driver;
         double dolar = 0;
         List<string> excludeds;
+        ChromeDriverService driverService;
+        ChromeOptions options;
 
-        IReadOnlyCollection<IWebElement> rgList;
         public MainWindow()
         {
             InitializeComponent();
             excludeds = new List<string>();
-            #region driverSettings
-            new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
-            ChromeDriverService driverService = ChromeDriverService.CreateDefaultService();
-            driverService.HideCommandPromptWindow = true;
-            var options = new ChromeOptions();
-            options.AddArgument("--window-position=-32000,-32000");
-            options.AddArguments("--lang=tr");
-            driver = new ChromeDriver(driverService, options);
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
-            #endregion
         }
 
         private void btnHesapla_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                driver.Close();
+                ChromeDrivers();
+            }
+            catch (Exception ex)
+            {
+                ChromeDrivers();
+            }
+
             double usdKur = kurCek("USD");
             lblUsdKur.Content = $"USD : {Math.Round(usdKur, 2)}";
             double euroKur = kurCek("EUR");
@@ -59,8 +62,6 @@ namespace OdemeTopla
 
             if (cevap == MessageBoxResult.Cancel)
                 return;
-
-            btnHesapla.IsEnabled = false;
 
             string jsonData;
             string dir = System.IO.Path.GetDirectoryName(
@@ -79,25 +80,28 @@ namespace OdemeTopla
             {
                 MessageBox.Show("excludedList.json dosyası bulunamadı veya bozuk.", "ERROR", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            driver.Navigate().GoToUrl($"https://smartcat.com/billing/executive-payment-statuses");
-            IWebElement userName = driver.FindElement(By.CssSelector(".md-input__textfield"));
-            userName.SendKeys(txtMail.Text);
-            IWebElement dvmBtn = driver.FindElement(By.CssSelector(".g-btn__text"));
-            dvmBtn.Click();
-            IWebElement passwrd = driver.FindElement(By.XPath("/html/body/div[1]/div[1]/div[2]/div/div[3]/div[2]/div/form/div[3]/div[1]/div[1]/input"));
-            passwrd.SendKeys(txtPassword.Password);
-            IWebElement loginBtn = driver.FindElement(By.CssSelector(".g-btn.g-btn_big.g-btn_purple.g-btn_weight_medium"));
-            loginBtn.Click();
-            Thread.Sleep(4000);
-
             double totalPrice = 0;
+
+            if (chBoxAvrupa.IsChecked == true || chBoxAbd.IsChecked == true || chBoxAsya.IsChecked == true)
+            {
+                driver.Navigate().GoToUrl("https://smartcat.com/billing/executive-payment-statuses");
+                IWebElement userName = driver.FindElement(By.CssSelector(".md-input__textfield"));
+                userName.SendKeys(txtMail.Text);
+                IWebElement dvmBtn = driver.FindElement(By.CssSelector(".g-btn__text"));
+                dvmBtn.Click();
+                IWebElement passwrd = driver.FindElement(By.XPath("/html/body/div[1]/div[1]/div[2]/div/div[3]/div[2]/div/form/div[3]/div[1]/div[1]/input"));
+                passwrd.SendKeys(txtPassword.Password);
+                IWebElement loginBtn = driver.FindElement(By.CssSelector(".g-btn.g-btn_big.g-btn_purple.g-btn_weight_medium"));
+                loginBtn.Click();
+                Thread.Sleep(4000);
+            }
+
             if (chBoxAvrupa.IsChecked == true)
-                SmartCatTopla("AVRUPA", "EUROPE", "");
+                SmartCatTopla("Avrupa", "");
             if (chBoxAbd.IsChecked == true)
-                SmartCatTopla("ABD", "USA", "us.");
+                SmartCatTopla("ABD", "us.");
             if (chBoxAsya.IsChecked == true)
-                SmartCatTopla("ASYA", "ASIA", "ea.");
+                SmartCatTopla("Asya", "ea.");
 
 
             double euro = 0;
@@ -119,7 +123,7 @@ namespace OdemeTopla
                     do
                     {
                         string jsCommand = "" +
-                    "sayfa = document.querySelector('body > div > div.content.portal.ng-scope > ui-view > div > div > page-section:nth-child(5) > div > div > div > section > div.loader-container.ng-scope > div > div > div > ul > li:nth-child(5) > div > a');" +
+                    "sayfa = document.querySelector('body > div > div.content.portal.ng-scope > ui-view > div > div > page-section:nth-child(5) > div > div > div > section > div.loader-container.ng-scope > div > div > div > ul > li:last-child > div > a');" +
                     "return sayfa;";
                         IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
                         IWebElement nextBtn = (IWebElement)js.ExecuteScript(jsCommand);
@@ -144,7 +148,7 @@ namespace OdemeTopla
 
             if (totalPrice == 0)
             {
-                MessageBox.Show("", "");
+                MessageBox.Show("Hiç veri bulunamadı.", "Error!");
             }
             else
             {
@@ -152,37 +156,28 @@ namespace OdemeTopla
                 lblDolar.Content = Math.Round(dolar, 2) + " $";
                 lblEuro.Content = Math.Round(euro, 2) + " €";
             }
-
-            btnHesapla.IsEnabled = true;
         }
         private void Window_Closed(object sender, EventArgs e)
         {
-            if (driver != null)
+            try
+            {
                 driver.Close();
+            }
+            catch { }
         }
 
         #region Methods
-        void SmartCatTopla(string region, string regionEng, string regionURL)
+        void SmartCatTopla(string region, string regionURL)
         {
             IWebElement profile = driver.FindElement(By.XPath("/html/body/div[1]/div[1]/div[1]/div[1]/div[1]/div[2]/div/div/div[1]/button"));
             profile.Click();
             IWebElement regBtn = driver.FindElement(By.XPath("/html/body/div[1]/div[1]/div[1]/div[2]/div[3]/div/div[2]/div/div/div[2]/span/span[1]"));
             regBtn.Click();
-            IReadOnlyCollection<IWebElement> rgList = driver.FindElements(By.XPath("/html/body/div[1]/div[1]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/a"));
-
-
-            foreach (var item in rgList)
-            {
-                if (item.Text == region || item.Text == regionEng)
-                {
-                    item.Click();
-                    Thread.Sleep(4000);
-                    driver.Navigate().GoToUrl($"https://{regionURL}smartcat.com/billing/executive-payment-statuses");
-                    Thread.Sleep(4000);
-                    break;
-                }
-
-            }
+            IWebElement rgList = driver.FindElement(By.XPath($"//a[contains(text(),'{region}')]"));
+            rgList.Click();
+            Thread.Sleep(4000);
+            driver.Navigate().GoToUrl($"https://{regionURL}smartcat.com/billing/executive-payment-statuses");
+            Thread.Sleep(4000);
 
             string jsCommand = "" +
                 "sayfa = document.querySelector('html');" +
@@ -201,14 +196,39 @@ namespace OdemeTopla
                     break;
             }
 
+            #region Yeni yöntem denemesi(Bitmedi)
+            //string paymentRows = driver.FindElement(By.XPath("/html/body/div[1]/div[1]/div[1]/div[2]/div[1]/div/div/div/div[1]/div/div[2]/div[1]/div[2]")).Text;
+
+
+            //StreamWriter file =
+            //  new StreamWriter("payments.Text", true);
+            //file.WriteLine(paymentRows);
+            //file.Close();
+
+
+            //try
+            //{
+            //    SaveFileDialog saveFileD = new SaveFileDialog();
+            //    saveFileD.FileName = "payments";
+            //    saveFileD.Filter = "Text File (*txt) | *.txt";
+            //    saveFileD.DefaultExt = "txt";
+
+            //    StreamWriter yazmaIslemi = new StreamWriter(saveFileD.FileName);
+            //    yazmaIslemi.WriteLine(paymentRows);
+            //    yazmaIslemi.Close();
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show("Ödemeler kaydedilemedi!","Error!",MessageBoxButton.OK,MessageBoxImage.Error);
+            //}
+            #endregion
 
             IReadOnlyCollection<IWebElement> paymentRows = driver.FindElements(By.CssSelector(".freelancer-payments-column__row"));
-
             foreach (var item in paymentRows)
             {
                 IWebElement status = item.FindElement(By.CssSelector(".g-text_weight_semibold"));
 
-                if (status.Text == "Ödeme bekleniyor" || status.Text == "Devam ediyor" || status.Text == "Ödeme işleniyor" || status.Text == "In progress" || status.Text == "Processing payment" || status.Text == "Awaiting payment")
+                if (status.Text == "Ödeme bekleniyor" || status.Text == "Devam ediyor" || status.Text == "Ödeme işleniyor")
                 {
                     string jobID = item.FindElement(By.CssSelector(".freelancer-payments__block-document-name")).Text.Trim();
 
@@ -224,13 +244,37 @@ namespace OdemeTopla
 
         double kurCek(string doviz)
         {
+            double kur;
             string kurUrl = "https://www.tcmb.gov.tr/kurlar/today.xml";
             var xmldoc = new XmlDocument();
-            xmldoc.Load(kurUrl);
-            double kur = Convert.ToDouble(xmldoc.SelectSingleNode($"Tarih_Date/Currency [@Kod='{doviz}']/ForexBuying").InnerXml);
+            try
+            {
+                xmldoc.Load(kurUrl);
+            }
+            catch (Exception ex)
+            {
+                var result = MessageBox.Show("Kur verileri çekilemedi. Tekrar denemek ister misiniz?", "Error!", MessageBoxButton.YesNo, MessageBoxImage.Error);
+                if (result == MessageBoxResult.Yes)
+                    kur = kurCek(doviz);
+            }
+            kur = Convert.ToDouble(xmldoc.SelectSingleNode($"Tarih_Date/Currency [@Kod='{doviz}']/ForexBuying").InnerXml);
 
             return kur;
         }
+
+        void ChromeDrivers()
+        {
+            new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
+            driverService = ChromeDriverService.CreateDefaultService();
+            driverService.HideCommandPromptWindow = true;
+            options = new ChromeOptions();
+            //options.AddArgument("--window-position=-32000,-32000");
+            options.AddArguments("--lang=tr");
+            driver = new ChromeDriver(driverService, options);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
+        }
+
+
         #endregion
     }
 }
