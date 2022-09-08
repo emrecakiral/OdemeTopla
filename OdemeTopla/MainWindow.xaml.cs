@@ -273,8 +273,6 @@ namespace OdemeTopla
             driver = new ChromeDriver(driverService, options);
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
         }
-
-
         #endregion
     }
 }
