@@ -13,3 +13,7 @@
   "Help Center - Translation (Beluga)"
 ]
 ```
+
+***
+
+![image](https://user-images.githubusercontent.com/61161197/189065762-3a4cf8e3-4291-4627-88c8-8c0a3fab2fd2.png)
